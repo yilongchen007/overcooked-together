@@ -2,6 +2,14 @@
 
 A two-player cooking environment for multi-agent reinforcement learning, inspired by **Overcooked! 2**, with an interactive browser interface. Version 0.1 is a runnable prototype for testing mechanics and connecting policies. The rules are independently implemented and all artwork is original. It includes no commercial game assets and is not a direct fork of Collab-Overcooked.
 
+## Demo
+
+[![Watch the Overcooked Together demo: three kitchens with two scripted chefs](docs/demo.gif)](docs/demo.mp4)
+
+**[Watch or download the full-resolution video (MP4)](https://github.com/yilongchen007/overcooked-together/raw/refs/heads/main/docs/demo.mp4)** · 42 seconds · 6× playback speed · No audio
+
+Actual browser gameplay with two rule-based chefs: Sushi City (shared duties), Moreish Mines (fixed zones and food handoffs), and Conjurer’s Kitchen (shared duties and moving boards). Recipe procedures remain hidden in the interface; the scripted chefs have explicit recipe knowledge. This is a mechanics demonstration, not a trained-policy result.
+
 ## Open the kitchen
 
 Double-click **Launch.command** on macOS, or run this from the project directory:
@@ -122,3 +130,5 @@ node tests/browser.mjs
 ```
 
 Validated with Node 24.18.0, Python 3.9.6, PettingZoo 1.26.1, and Gymnasium 1.1.1. See [preview.png](docs/preview.png) for the current interface.
+
+To regenerate the demo, start the server, install `playwright-core` as above and [FFmpeg](https://ffmpeg.org/), then run `node scripts-record-demo.mjs`. The recorder uses the real browser renderer with a deterministic clock and verifies a completed delivery in every kitchen. Set `CHROME_PATH`, `FFMPEG`, or `BASE_URL` to override their defaults.
