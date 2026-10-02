@@ -4,11 +4,11 @@ A two-player cooking environment for multi-agent reinforcement learning, inspire
 
 ## Demo
 
-[![Watch the Overcooked Together demo: three kitchens with two scripted chefs](docs/demo.gif)](docs/demo.mp4)
+![Burger kitchen gameplay: two chefs cook, pass ingredients and assemble burgers](docs/demo.gif)
 
-**[Watch or download the full-resolution video (MP4)](https://github.com/yilongchen007/overcooked-together/raw/refs/heads/main/docs/demo.mp4)** · 42 seconds · 6× playback speed · No audio
+Burger kitchen · Two scripted chefs · 20 seconds at 4× speed
 
-Actual browser gameplay with two rule-based chefs: Sushi City (shared duties), Moreish Mines (fixed zones and food handoffs), and Conjurer’s Kitchen (shared duties and moving boards). Recipe procedures remain hidden in the interface; the scripted chefs have explicit recipe knowledge. This is a mechanics demonstration, not a trained-policy result.
+Actual browser gameplay in Moreish Mines, cropped to the kitchen: one chef cooks on the right and passes food through the turntable; the other assembles and serves burgers on the left. The scripted chefs have explicit recipe knowledge; default agent observations omit recipe procedures. This is a mechanics demonstration, not a trained-policy result.
 
 ## Open the kitchen
 
@@ -131,4 +131,4 @@ node tests/browser.mjs
 
 Validated with Node 24.18.0, Python 3.9.6, PettingZoo 1.26.1, and Gymnasium 1.1.1. See [preview.png](docs/preview.png) for the current interface.
 
-To regenerate the demo, start the server, install `playwright-core` as above and [FFmpeg](https://ffmpeg.org/), then run `node scripts-record-demo.mjs`. The recorder uses the real browser renderer with a deterministic clock and verifies a completed delivery in every kitchen. Set `CHROME_PATH`, `FFMPEG`, or `BASE_URL` to override their defaults.
+To regenerate the GIF, start the server, install `playwright-core` as above and [FFmpeg](https://ffmpeg.org/), then run `node scripts-record-demo.mjs`. The recorder captures only the burger kitchen canvas at its native 1200 × 750 resolution and 15 fps, uses a deterministic clock, and verifies a completed delivery. Set `CHROME_PATH`, `FFMPEG`, or `BASE_URL` to override their defaults.

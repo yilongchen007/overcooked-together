@@ -2,17 +2,20 @@
 // Requires playwright-core, Chrome, ffmpeg, and a running `npm start` server.
 import {spawn} from 'node:child_process';
 import {once} from 'node:events';
-import {mkdir} from 'node:fs/promises';
+import {mkdir, mkdtemp, rm} from 'node:fs/promises';
+import {tmpdir} from 'node:os';
+import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 const {chromium} = await import(process.env.PLAYWRIGHT_MODULE || 'playwright-core');
 const root = fileURLToPath(new URL('.', import.meta.url));
 const ffmpeg = process.env.FFMPEG || 'ffmpeg';
-const fps = 12, secondsPerScene = 14, speed = 6;
+const fps = 15, secondsPerScene = 20, speed = 4;
+const temp = await mkdtemp(path.join(tmpdir(), 'overcooked-demo-'));
+const capture = path.join(temp, 'capture.mkv');
 await mkdir(new URL('docs/', import.meta.url), {recursive: true});
 const encoder = spawn(ffmpeg, ['-y', '-hide_banner', '-loglevel', 'error',
   '-f', 'image2pipe', '-framerate', String(fps), '-vcodec', 'png', '-i', '-',
-  '-an', '-c:v', 'libx264', '-preset', 'medium', '-crf', '23', '-pix_fmt', 'yuv420p',
-  '-movflags', '+faststart', `${root}docs/demo.mp4`], {stdio: ['pipe', 'inherit', 'inherit']});
+  '-an', '-c:v', 'ffv1', capture], {stdio: ['pipe', 'inherit', 'inherit']});
 const encoded = once(encoder, 'close');
 const browser = await chromium.launch({
   executablePath: process.env.CHROME_PATH || '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
@@ -36,10 +39,10 @@ try {
   });
   await page.goto(process.env.BASE_URL || 'http://127.0.0.1:8765');
   await page.waitForFunction(() => window.kitchenApp);
+  // Recording-only framing: capture the native 1200 × 750 kitchen canvas.
+  await page.addStyleTag({content: '.topbar,.intro,.scene-tabs,.sidebar,.site-footer{display:none} main{padding:0} .workspace{display:block} .game-panel{width:1202px}'});
   for (const [scene, title, caption] of [
-    ['sushi-city', 'Sushi City', 'Flexible roles · Prepare fish, cook rice, assemble and serve.'],
     ['burger-mine', 'Moreish Mines', 'Fixed roles · Cook on the right, pass food, assemble on the left.'],
-    ['pizza-castle', 'Conjurer’s Kitchen', 'Flexible roles · Share moving boards, prepare toppings and bake.'],
   ]) {
     await page.evaluate(({scene, title, caption, speed}) => {
       window.kitchenApp.selectScene(scene);
@@ -51,7 +54,7 @@ try {
     }, {scene, title, caption, speed});
     for (let frame = 0; frame < fps * secondsPerScene; frame++) {
       await page.evaluate(ms => window.advanceDemo(ms), 1000 / fps * speed);
-      const png = await page.screenshot();
+      const png = await page.locator('#kitchen').screenshot();
       if (!encoder.stdin.write(png)) await once(encoder.stdin, 'drain');
     }
     const result = await page.evaluate(() => ({tick: window.kitchenApp.engine.tick,
@@ -64,9 +67,10 @@ try {
   await browser.close();
   encoder.stdin.end();
 }
-if ((await encoded)[0] !== 0) throw new Error('Video encoding failed');
-const preview = spawn(ffmpeg, ['-y', '-hide_banner', '-loglevel', 'error', '-i', `${root}docs/demo.mp4`,
-  '-filter_complex', 'fps=6,scale=720:-1:flags=lanczos,split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4',
+if ((await encoded)[0] !== 0) throw new Error('Capture encoding failed');
+const preview = spawn(ffmpeg, ['-y', '-hide_banner', '-loglevel', 'error', '-i', capture,
+  '-filter_complex', 'split[a][b];[a]palettegen=stats_mode=diff[p];[b][p]paletteuse=dither=bayer:bayer_scale=4',
   '-loop', '0', `${root}docs/demo.gif`], {stdio: 'inherit'});
 if ((await once(preview, 'close'))[0] !== 0) throw new Error('GIF encoding failed');
-console.log('Saved docs/demo.mp4 and docs/demo.gif');
+await rm(temp, {recursive: true, force: true});
+console.log('Saved docs/demo.gif');
