@@ -1,0 +1,16 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "overcooked-together"
+version = "0.1.0"
+description = "Parallel multi-agent cooking environment with a shared browser simulator"
+requires-python = ">=3.9"
+dependencies = ["numpy>=1.24,<3", "gymnasium>=1.0,<2", "pettingzoo>=1.24,<2"]
+
+[tool.setuptools]
+packages = ["overcooked_together"]
+
+[tool.setuptools.package-data]
+overcooked_together = ["js/*.js", "js/*.mjs"]

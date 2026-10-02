@@ -1,0 +1,10 @@
+import http from 'node:http';
+import {readFile} from 'node:fs/promises';
+import path from 'node:path';
+import {fileURLToPath} from 'node:url';
+import {spawn} from 'node:child_process';
+const root=path.dirname(fileURLToPath(import.meta.url)),port=Number(process.env.PORT||8765);
+const mime={'.html':'text/html; charset=utf-8','.css':'text/css','.js':'text/javascript','.md':'text/plain; charset=utf-8','.png':'image/png','.json':'application/json'};
+const server=http.createServer(async(req,res)=>{try{const uri=decodeURIComponent(new URL(req.url,'http://localhost').pathname),file=path.resolve(root,'.'+(uri==='/'?'/index.html':uri));if(!file.startsWith(root+path.sep)||uri.split('/').some(p=>p.startsWith('.'))){res.writeHead(403);res.end();return;}const body=await readFile(file);res.writeHead(200,{'Content-Type':mime[path.extname(file)]||'application/octet-stream','Cache-Control':'no-cache'});res.end(body);}catch{res.writeHead(404);res.end('Not found');}});
+server.on('error',e=>{console.error(e.code==='EADDRINUSE'?`Port ${port} is occupied. Open http://127.0.0.1:${port} if already running, or set PORT.`:e.message);process.exitCode=1;});
+server.listen(port,'127.0.0.1',()=>{const url=`http://127.0.0.1:${port}`;console.log(`Overcooked Together: ${url}`);if(process.argv.includes('--open'))spawn(process.platform==='darwin'?'open':'xdg-open',[url],{stdio:'ignore'}).on('error',()=>{});});
